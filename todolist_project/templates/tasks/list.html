@@ -4,6 +4,18 @@
 <p>
   <a href="/tasks/create/">Nova tarefa</a>
   | Filtrar: <a href="?">todas</a> | <a href="?status=pending">pendentes</a> | <a href="?status=done">concluídas</a>
+
+  <form method="get">
+  <input
+    type="text"
+    name="title"
+    placeholder="Filtrar por título"
+    value="{{ request.GET.title|default:'' }}"
+  >
+  <button type="submit">Filtrar</button>
+  <a href="?">Limpar</a>
+</form>
+
 </p>
 <table>
   <thead><tr><th>Título</th><th>Estado</th><th>Ações</th></tr></thead>

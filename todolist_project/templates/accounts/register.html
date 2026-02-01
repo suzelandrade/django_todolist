@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Registar</h2>
-<form method="post">{% csrf_token %}
+<form method="post">
   <label>Utilizador <input name="username" required></label>
   <label>Password <input type="password" name="password" required></label>
   <button type="submit">Criar conta</button>

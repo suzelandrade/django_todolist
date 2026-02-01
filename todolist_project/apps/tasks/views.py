@@ -1,19 +1,34 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Task
+from django.db import connection
 
 @login_required
 def task_list(request):
-    q = Task.objects.filter(owner=request.user)
     status = request.GET.get('status')
+    title = request.GET.get('title')
+
+    sql = f"""
+        SELECT * FROM tasks_task
+        WHERE owner_id = {request.user.id}
+    """
+
     if status == 'done':
-        q = q.filter(is_done=True)
+        sql += " AND is_done = 1"
     elif status == 'pending':
-        q = q.filter(is_done=False)
-    ctx = {
-        'tasks': q,
-    }
-    return render(request, 'tasks/list.html', ctx)
+        sql += " AND is_done = 0"
+
+    if title:
+        # SQL Injection direta
+        sql += f" AND title LIKE '%{title}%'"
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+
+    tasks = Task.objects.raw(sql)
+
+    return render(request, 'tasks/list.html', {'tasks': tasks})
 
 @login_required
 def create_task(request):
