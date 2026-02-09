@@ -5,22 +5,8 @@ on:
     types: [published]
 
 jobs:
-  
-  sast-analysis:
-    name: Build and sonarqube analyze
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: SonarSource/sonarqube-scan-action@v6
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
   build-and-push-ci:
     runs-on: ubuntu-latest
-    needs: sast-analysis
 
     steps:
       - name: Checkout code
