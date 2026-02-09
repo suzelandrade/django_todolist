@@ -40,33 +40,18 @@ jobs:
     needs: build-and-push
 
     steps:
+      - name: Prepare SSH key
+        run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.DO_SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/id_key
+            chmod 600 ~/.ssh/id_key
       - name: Deploy via SSH (docker compose pull && up -d)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USER }}
-          key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.DO_SSH_PORT || 22 }}
-          script: |
+        run: |
+            ssh -i ~/.ssh/id_key -o StrictHostKeyChecking=no ${{ secrets.DO_USER }}@${{ secrets.DO_HOST }} << 'EOF'
             set -euo pipefail
-
-            cd "${{ secrets.DO_APP_PATH || '/opt/devops' }}"
-
-            echo "Docker versions:"
-            docker --version
-            docker compose version
-
-            # Login no Docker Hub (necessário se repo for privado; não faz mal se for público)
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-            echo "Pull new images..."
+            cd "${{ secrets.DO_APP_PATH }}"
             docker compose pull
-
-            echo "Apply changes (rolling recreate)..."
             docker compose up -d --remove-orphans
-
-            echo "Show running containers:"
             docker compose ps
-
-            echo "Cleanup unused images (optional)..."
             docker image prune -f
+            EOF
